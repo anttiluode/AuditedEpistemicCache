@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/anttiluode/AuditedEpistemicCache/schema/aec-event.schema.json",
   "title": "Audited Epistemic Cache Event",
-  "description": "A domain-neutral event record for purchased evidence, reuse, audit, diagnosis, confirmation, eviction, and slower structural update. Domain adapters remain responsible for policy and payload semantics.",
+  "description": "A domain-neutral event record for purchased evidence, reuse, audit, diagnosis, confirmation, temporal completeness, residency, generational invalidation, and slower structural update. Domain adapters remain responsible for policy and payload semantics.",
   "type": "object",
   "required": ["system", "event", "entry_key", "payload_kind"],
   "properties": {
     "time": {
-      "description": "Adapter-defined monotonic step, timestamp, frame index, incident index, or wall time.",
+      "description": "Adapter-defined monotonic step, timestamp, frame index, incident index, or wall time. Prefer temporal.valid_time / temporal.knowledge_time when those semantics matter.",
       "type": ["number", "integer", "string", "null"]
     },
     "system": {
@@ -30,6 +30,11 @@
         "REJECT",
         "REFRESH",
         "EVICT",
+        "ARCHIVE",
+        "PROMOTE",
+        "SUPERSEDE",
+        "WATERMARK",
+        "GENERATION_CHANGE",
         "STRUCTURAL_UPDATE"
       ]
     },
@@ -46,15 +51,70 @@
         "baseline",
         "prediction_model",
         "memory",
+        "dynamical_trace",
         "hypothesis",
         "operator_model",
         "environmental_trace",
         "structure",
+        "scientific_claim",
         "other"
       ]
     },
     "identity_mode": {
       "enum": ["KEY_KNOWN", "KEY_INFERRED", "KEY_OPEN_WORLD"]
+    },
+    "validity_state": {
+      "description": "Current epistemic state. INCOMPLETE means the evidence horizon is not closed; it is not equivalent to a negative observation or STALE.",
+      "enum": ["UNKNOWN", "INCOMPLETE", "VALID", "SUSPECT", "STALE", "SUPERSEDED"]
+    },
+    "temporal": {
+      "type": "object",
+      "description": "Optional bitemporal/evidence-completeness metadata. valid_time concerns the represented world; knowledge_time concerns when the system learned it.",
+      "properties": {
+        "valid_time": {"type": ["number", "integer", "string", "null"]},
+        "knowledge_time": {"type": ["number", "integer", "string", "null"]},
+        "world_age": {"type": ["number", "integer", "null"], "minimum": 0},
+        "knowledge_age": {"type": ["number", "integer", "null"], "minimum": 0},
+        "evidence_complete_through": {"type": ["number", "integer", "string", "null"]},
+        "source_watermark": {"type": ["number", "integer", "string", "null"]},
+        "expected_lateness": {"type": ["number", "integer", "null"], "minimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "generation": {
+      "type": "object",
+      "description": "Versions of upstream representations/operators on which the entry depends. A generation change may invalidate a family of entries at once.",
+      "properties": {
+        "model_version": {"type": ["string", "number", "integer", "null"]},
+        "representation_id": {"type": ["string", "number", "integer", "null"]},
+        "operator_generation": {"type": ["string", "number", "integer", "null"]},
+        "basis_id": {"type": ["string", "number", "integer", "null"]},
+        "context_hash": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "residency": {
+      "type": "object",
+      "description": "Optional soft-retention state. ARCHIVED is not the same as EVICTED; a cold entry may retain weak influence.",
+      "properties": {
+        "tier": {"enum": ["HOT", "WARM", "COLD", "ARCHIVED"]},
+        "influence_weight": {"type": ["number", "null"], "minimum": 0},
+        "residency_cost": {"type": ["number", "null"], "minimum": 0},
+        "cost_unit": {"type": ["string", "null"]},
+        "decay_model": {"type": ["string", "object", "null"]},
+        "time_constant": {"type": ["number", "null"], "exclusiveMinimum": 0}
+      },
+      "additionalProperties": true
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Entries, representations, operator generations, sources, or other claims whose invalidation may affect this entry.",
+      "items": {
+        "oneOf": [
+          {"type": "string"},
+          {"type": "object", "additionalProperties": true}
+        ]
+      }
     },
     "context": {
       "type": "object",
@@ -62,8 +122,12 @@
     },
     "claim": {
       "type": "object",
-      "description": "The adapter-specific validity or causal claim associated with the entry.",
+      "description": "The adapter-specific validity, causal, predictive, or scientific claim associated with the entry.",
       "additionalProperties": true
+    },
+    "claim_status": {
+      "description": "Optional status for claim-ledger adapters. Runtime adapters may omit it.",
+      "enum": ["SPECULATIVE", "SUPPORTED", "FAILED", "SUPERSEDED"]
     },
     "cost": {
       "type": "object",
@@ -90,6 +154,17 @@
       "minimum": 0,
       "maximum": 1
     },
+    "risk_state": {
+      "type": "object",
+      "description": "Optional stateful evidence about invalidation, separate from the cached payload itself.",
+      "properties": {
+        "evidence_accumulator": {"type": ["number", "null"]},
+        "accumulator_decay": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "last_residual": {"type": ["number", "null"]},
+        "summary": {"type": ["string", "object", "null"]}
+      },
+      "additionalProperties": true
+    },
     "outcome": {
       "type": "object",
       "additionalProperties": true
@@ -107,6 +182,16 @@
         "ATTACKER_SURVIVED",
         "REPLICATED"
       ]
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "invalidates": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
     },
     "entry_before": {
       "$ref": "#/$defs/entryCounters"
@@ -129,10 +214,15 @@
       "type": "object",
       "properties": {
         "age": {"type": ["number", "integer", "null"], "minimum": 0},
+        "world_age": {"type": ["number", "integer", "null"], "minimum": 0},
+        "knowledge_age": {"type": ["number", "integer", "null"], "minimum": 0},
         "reuse_count": {"type": ["integer", "null"], "minimum": 0},
         "audit_count": {"type": ["integer", "null"], "minimum": 0},
         "miss_count": {"type": ["integer", "null"], "minimum": 0},
-        "last_audit": {"type": ["number", "integer", "string", "null"]}
+        "last_audit": {"type": ["number", "integer", "string", "null"]},
+        "residency_tier": {"enum": ["HOT", "WARM", "COLD", "ARCHIVED", null]},
+        "representation_id": {"type": ["string", "number", "integer", "null"]},
+        "operator_generation": {"type": ["string", "number", "integer", "null"]}
       },
       "additionalProperties": true
     }
