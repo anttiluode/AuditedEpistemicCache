@@ -99,7 +99,31 @@ A cache entry is therefore not merely a value. It is a **claim that a previously
 
 ## Repository audit
 
-The detailed comparison is in **[AUDIT.md](AUDIT.md)**. The mathematical / software contract is in **[UNIFIED_MODEL.md](UNIFIED_MODEL.md)**. A first machine-readable common event record is in **[`schema/aec-event.schema.json`](schema/aec-event.schema.json)**.
+The detailed comparison is in **[AUDIT.md](AUDIT.md)**. The mathematical / software contract is in **[UNIFIED_MODEL.md](UNIFIED_MODEL.md)**. The deeper second scan — including `WidePresent`, representation drift, soft archival and the research-claim ledger — is in **[SECOND_PASS.md](SECOND_PASS.md)**. The machine-readable common event record is in **[`schema/aec-event.schema.json`](schema/aec-event.schema.json)**.
+
+### Second-pass correction: one `age` was not enough
+
+The deeper scan found four dimensions that the first schema had flattened:
+
+```text
+TIME
+  world / valid time       when the represented thing belongs in the world
+  knowledge / arrival time when the system learned it
+  evidence completeness    whether late evidence could still arrive
+
+GENERATION
+  model / representation / operator version under which the claim was earned
+
+RESIDENCY
+  hot / warm / cold / archived — not every removal is hard eviction
+
+ADMISSION
+  whether a new observation deserves a durable entry at all
+```
+
+This comes most sharply from [WidePresent](https://github.com/anttiluode/WidePresent): `nothing happened` and `nothing has arrived yet` are different epistemic states. An entry can therefore be **INCOMPLETE** without being stale. [PredictiveHKT](https://github.com/anttiluode/PredictiveHKT) adds another failure mode: an operator estimated in a learned latent space can become obsolete because the *representation itself* moved. [Island-Memory-Field](https://github.com/anttiluode/Island-Memory-Field) supplies soft archival instead of binary keep/evict.
+
+The schema now carries these as optional metadata rather than adding more visual glyphs. The six-symbol legend stays simple; the receipt behind each symbol gets stricter.
 
 The recurring mechanism appears in several distinct families.
 
@@ -124,13 +148,30 @@ The recurring mechanism appears in several distinct families.
 - [Child](https://github.com/anttiluode/Child) — fast traces preserve evidence until delayed relevance is known; later gates expose self-sealing memory policies and reserve exploration.
 - [AlternativeNeuron](https://github.com/anttiluode/AlternativeNeuron) — fast poking, medium memory and slow routing cost are separated; remembered hypotheses alter the geometry/cost of future measurements.
 - [BlackBoxLab](https://github.com/anttiluode/BlackBoxLab) — traces can live in a shared environment; later agents reuse history written outside themselves.
+- [PresentMoment](https://github.com/anttiluode/PresentMoment) — a partial match showing that reusable history can live as a decaying dynamical trace rather than a symbolic cache entry.
+- [Island-Memory-Field](https://github.com/anttiluode/Island-Memory-Field) — a partial match supplying working/cold archival and soft influence suppression instead of hard eviction.
 
 ### 4. Slow structure / operator identification
 
 - [OutoSynapsi](https://github.com/anttiluode/OutoSynapsi) — scalar consequences identify which effective transport law is governing a world; repeated traffic then deforms the operator under a fixed budget.
 - [Operaattori](https://github.com/anttiluode/Operaattori) / [OperaattoriJako](https://github.com/anttiluode/OperaattoriJako) — persistent structure compiles a transport operator; local nonlinear state can change the consequence and the gradient of structural edits.
+- [PhaseKeyedAssociativeStorage](https://github.com/anttiluode/PhaseKeyedAssociativeStorage) — historical partial match: repeated satisfied relations strengthen structure, weak relations prune, and interventions respond to constraint violations.
 - [Geometric-Neuron](https://github.com/anttiluode/Geometric-Neuron) — historically important for a different reason: later null tests were allowed to invalidate earlier “memory” claims. It is a claim-audit ledger, not an implementation of this cache contract.
 - [PerceptionLab](https://github.com/anttiluode/PerceptionLab) — the older experimental origin of changing what is sampled, at what scale, and when.
+
+### 5. Time, representation and epistemic completeness
+
+- [WidePresent](https://github.com/anttiluode/WidePresent) — world time, knowledge time and watermarks expose the difference between stale evidence and evidence that has not arrived yet.
+- [PredictiveHKT](https://github.com/anttiluode/PredictiveHKT) — an estimated operator lives inside a representation generation; if the learned encoder moves, old modal claims can become incomparable even when the external world did not change.
+- [DidItChange](https://github.com/anttiluode/DidItChange) — prediction residuals identify when the generating process itself may have changed rather than merely when a cached computation should be rerun.
+
+### 6. Meta-level claim auditing
+
+- [BirthOfClockfield](https://github.com/anttiluode/BirthOfClockfield) — an earlier GUE/Riemann interpretation was later audited to GOE-like generic chaos, and a prime-trace null became a permanent gatekeeper.
+- [Island-Memory-Field](https://github.com/anttiluode/Island-Memory-Field) — an attempted equivalence was downgraded after a blind-zone counterexample; the surviving mechanism was repurposed rather than the failed claim hidden.
+- [ClockfieldDimensionality](https://github.com/anttiluode/ClockfieldDimensionality) and several [ShadyStuff](https://github.com/anttiluode/ShadyStuff) notes contain explicit `Honest Ledger` claim/status sections.
+
+This is the same **bookkeeping topology** at a meta level, not the same runtime algorithm. The schema therefore allows `scientific_claim` as an optional payload kind while keeping claim-ledger adapters explicitly separate from compute/cache adapters.
 
 ## What is actually shared
 
@@ -173,32 +214,38 @@ The audit matters because several mechanisms only look alike from far away.
 - A cached **plan** is not the same object as a cached **model output**.
 - A cached **baseline measurement** is not the same thing as an episodic **memory**.
 - `AUDIT` can mean random recomputation, a TTL refresh, an exploration reserve, a reversible intervention, a permutation null, or direct confirmation.
-- Staleness can come from world drift, demand drift, model drift, context change, open-world novelty, or the system changing its own operator.
+- Staleness can come from world drift, demand drift, model drift, context change, open-world novelty, late/incomplete evidence, or the system changing its own operator/representation.
 - Some systems know the cache key exactly; others must first infer what object / state / cause the key should refer to.
-- Some caches are internal data structures; BlackBoxLab's persistent material is an **environmental cache**.
+- Some caches are internal data structures; BlackBoxLab's persistent material is an **environmental cache** and PresentMoment's candidate trace is a **dynamical physical residue**.
+- Persistence alone is not enough. [HolographicMemory](https://github.com/anttiluode/HolographicMemory), [CognitiveBellSystem](https://github.com/anttiluode/CognitiveBellSystem), [Unit](https://github.com/anttiluode/Unit) and older memory demos rhyme with retention/adaptation but do not yet supply the paid-evidence + validity-audit contract.
 - Some slow structure is not a cache at all. `Operaattori` is included because it provides the downstream mechanism by which repeated confirmed traffic can change the operator through which future evidence flows.
 
-Those differences are the point of [AUDIT.md](AUDIT.md), not noise to average away.
+Those differences are the point of [AUDIT.md](AUDIT.md) and [SECOND_PASS.md](SECOND_PASS.md), not noise to average away.
 
 ## What they can become together
 
 The first useful target is **not another synthetic neuron**. It is a common evidence ledger that existing tools can emit.
 
-Every adapter would write the same small record:
+Every adapter would write the same small record, but the second pass makes the receipt richer:
 
 ```json
 {
-  "key": "receiver-or-hypothesis-id",
+  "entry_key": "receiver-or-hypothesis-id",
   "claim": "cached consequence remains within tolerance",
   "payload_kind": "plan|output|baseline|relation|memory|model",
-  "acquisition_cost": 38.2,
-  "cost_unit": "gpu_ms",
-  "age": 17,
-  "reuse_count": 143,
-  "predicted_risk": 0.021,
-  "audits": 8,
-  "misses": 1,
-  "last_verdict": "valid",
+  "validity_state": "VALID",
+  "temporal": {
+    "valid_time": 1700,
+    "knowledge_time": 1703,
+    "evidence_complete_through": 1698
+  },
+  "generation": {
+    "representation_id": "encoder-17",
+    "operator_generation": 42
+  },
+  "cost": {"value": 38.2, "unit": "gpu_ms"},
+  "savings": {"value": 143, "unit": "avoided_calls"},
+  "residency": {"tier": "HOT", "influence_weight": 1.0},
   "provenance": "expensive execution / reversible probe / direct confirmation"
 }
 ```
@@ -213,6 +260,9 @@ what became stale
 what was audited
 what was suspected
 what was confirmed
+whether evidence was complete yet
+which representation/operator generation a claim belonged to
+what was archived rather than deleted
 what changed structurally because of repeated confirmation
 ```
 
@@ -222,11 +272,21 @@ The strongest practical candidate is therefore:
 
 > **an auditable evidence/cache runtime + event schema + visualizer, with adapters for existing repos.**
 
-If that common layer cannot make the existing tools easier to measure, compare, debug or compose, then this repository should remain an audit/index rather than inventing another abstraction for its own sake.
+The stricter adapter gate after the second pass is:
+
+```text
+Oppository     cached expensive answer
+Concrete       cached relevance relation
+PulseTriage    hypothesis -> direct confirmation
+WidePresent    late evidence / two clocks / incomplete state
+PredictiveHKT  representation-generation invalidation
+```
+
+If one ledger can represent all five without lying about their differences, the common schema has earned itself. If not, this repository should remain an audit/index rather than inventing another abstraction for its own sake.
 
 ## Current stopping line
 
-Nothing here establishes a new theorem of memory, cognition, cache invalidation, active inference or metareasoning. The neighboring established fields include caching/memoization under change, change detection, active testing, experimental design, selective computation, value-of-information/value-of-computation ideas, continual learning and system identification.
+Nothing here establishes a new theorem of memory, cognition, cache invalidation, active inference or metareasoning. The neighboring established fields include caching/memoization under change, bitemporal/event-time bookkeeping, stream-processing watermarks, change detection, active testing, experimental design, selective computation, value-of-information/value-of-computation ideas, continual learning and system identification.
 
 The potentially useful contribution is more prosaic: **the same explicit evidence bookkeeping has repeatedly been missing, then re-invented, across otherwise unrelated projects.** This repo exists to make that bookkeeping reusable and falsifiable.
 
