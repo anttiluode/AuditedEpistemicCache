@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/anttiluode/AuditedEpistemicCache/schema/aec-event.schema.json",
+  "title": "Audited Epistemic Cache Event",
+  "description": "A domain-neutral event record for purchased evidence, reuse, audit, diagnosis, confirmation, eviction, and slower structural update. Domain adapters remain responsible for policy and payload semantics.",
+  "type": "object",
+  "required": ["system", "event", "entry_key", "payload_kind"],
+  "properties": {
+    "time": {
+      "description": "Adapter-defined monotonic step, timestamp, frame index, incident index, or wall time.",
+      "type": ["number", "integer", "string", "null"]
+    },
+    "system": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": ["string", "null"]
+    },
+    "event": {
+      "enum": [
+        "BUY",
+        "STORE",
+        "REUSE",
+        "AUDIT",
+        "STALE",
+        "SUSPECT",
+        "PROBE",
+        "CONFIRM",
+        "REJECT",
+        "REFRESH",
+        "EVICT",
+        "STRUCTURAL_UPDATE"
+      ]
+    },
+    "entry_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "payload_kind": {
+      "enum": [
+        "plan",
+        "relation",
+        "model_output",
+        "generated_representation",
+        "baseline",
+        "prediction_model",
+        "memory",
+        "hypothesis",
+        "operator_model",
+        "environmental_trace",
+        "structure",
+        "other"
+      ]
+    },
+    "identity_mode": {
+      "enum": ["KEY_KNOWN", "KEY_INFERRED", "KEY_OPEN_WORLD"]
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "claim": {
+      "type": "object",
+      "description": "The adapter-specific validity or causal claim associated with the entry.",
+      "additionalProperties": true
+    },
+    "cost": {
+      "type": "object",
+      "properties": {
+        "value": {"type": "number"},
+        "unit": {"type": "string"}
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "savings": {
+      "type": "object",
+      "properties": {
+        "value": {"type": "number"},
+        "unit": {"type": "string"},
+        "method": {"type": ["string", "null"]}
+      },
+      "required": ["value", "unit"],
+      "additionalProperties": false
+    },
+    "predicted_risk": {
+      "description": "Optional adapter-defined probability or normalized invalidity risk. Omit when the adapter does not produce a calibrated risk.",
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "outcome": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "provenance": {
+      "description": "How the evidence supporting this event was obtained.",
+      "type": ["string", "object", "null"]
+    },
+    "evidence_level": {
+      "enum": [
+        "UNTESTED",
+        "SUPPORTED",
+        "AUDITED",
+        "CAUSALLY_CONFIRMED",
+        "ATTACKER_SURVIVED",
+        "REPLICATED"
+      ]
+    },
+    "entry_before": {
+      "$ref": "#/$defs/entryCounters"
+    },
+    "entry_after": {
+      "$ref": "#/$defs/entryCounters"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "uniqueItems": true
+    },
+    "notes": {
+      "type": ["string", "null"]
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "entryCounters": {
+      "type": "object",
+      "properties": {
+        "age": {"type": ["number", "integer", "null"], "minimum": 0},
+        "reuse_count": {"type": ["integer", "null"], "minimum": 0},
+        "audit_count": {"type": ["integer", "null"], "minimum": 0},
+        "miss_count": {"type": ["integer", "null"], "minimum": 0},
+        "last_audit": {"type": ["number", "integer", "string", "null"]}
+      },
+      "additionalProperties": true
+    }
+  }
+}
