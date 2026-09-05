@@ -99,7 +99,7 @@ A cache entry is therefore not merely a value. It is a **claim that a previously
 
 ## Repository audit
 
-The detailed comparison is in **[AUDIT.md](AUDIT.md)**. The mathematical / software contract is in **[UNIFIED_MODEL.md](UNIFIED_MODEL.md)**.
+The detailed comparison is in **[AUDIT.md](AUDIT.md)**. The mathematical / software contract is in **[UNIFIED_MODEL.md](UNIFIED_MODEL.md)**. A first machine-readable common event record is in **[`schema/aec-event.schema.json`](schema/aec-event.schema.json)**.
 
 The recurring mechanism appears in several distinct families.
 
